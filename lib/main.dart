@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:converter2/converter.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer';
 
 void main() {
   runApp(const MyApp());
@@ -73,6 +74,8 @@ class _MyHomePageState extends State<MyHomePage> {
   var tempChoosenUnit;
   var tempVal;
 
+  List<String> conversionHistory = [];
+
   final TextEditingController _controller = TextEditingController()
     ..text = firstValue
     ..selection = TextSelection.collapsed(offset: firstValue.length);
@@ -84,12 +87,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 double.parse(firstValue), firstUnit, secondUnit)
             .toString();
       });
+      conversionHistory
+          .add("$firstValue $firstUnit = $secondValue $secondUnit");
     } else {
       setState(() {
         secondValue = Converter.convertFromMetricToImperial(
                 double.parse(firstValue), secondUnit, firstUnit)
             .toString();
       });
+      conversionHistory
+          .add("$firstValue $secondUnit = $secondValue $firstUnit");
     }
   }
 
@@ -109,6 +116,9 @@ class _MyHomePageState extends State<MyHomePage> {
       _controller.text = firstValue;
 
       isFromImperialToMetric = !isFromImperialToMetric;
+
+      conversionHistory
+          .add("$firstValue $secondUnit = $secondValue $firstUnit");
     });
   }
 
@@ -229,12 +239,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: const <Widget>[
+              children: <Widget>[
                 Flexible(
                   child: Padding(
                     padding: EdgeInsets.all(60.0),
                     child: ElevatedButton(
-                        onPressed: null, child: Text("SHOW HISTORY")),
+                      child: Text("SHOW HISTORY"),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  HistoryScreen(history: conversionHistory)),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -243,6 +262,29 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       // ),
+    );
+  }
+}
+
+class HistoryScreen extends StatelessWidget {
+  // In the constructor, require a Todo.
+  const HistoryScreen({super.key, required this.history});
+
+  // Declare a field that holds the Todo.
+  final List<String> history;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('History'),
+      ),
+      body: ListView.builder(
+        itemCount: history.length,
+        itemBuilder: (context, index) {
+          return Card(child: ListTile(title: Text(history[index])));
+        },
+      ),
     );
   }
 }
